@@ -1,0 +1,83 @@
+CREATE TABLE USERS (
+    id INT NOT NULL IDENTITY(1,1),
+    name_users VARCHAR(80) NOT NULL,
+    email VARCHAR(255) NULL,
+    created_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+
+    CONSTRAINT PK_USERS PRIMARY KEY (id),
+    CONSTRAINT UQ_USERS_email UNIQUE (email)
+);
+
+CREATE TABLE TASKSAGENDA (
+    id INT NOT NULL IDENTITY(1,1),
+    owner_user_id INT NOT NULL,
+    title VARCHAR(120) NOT NULL,
+    description_agenda  VARCHAR(1000) NULL,
+    due_date DATE NULL,
+    status_agenda VARCHAR(10) NOT NULL,
+    priority_agenda VARCHAR(6)      NOT NULL,
+    created_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+
+    CONSTRAINT PK_TASKSAGENDA PRIMARY KEY (id),
+    CONSTRAINT FK_TASKSAGENDA_owner_user  FOREIGN KEY (owner_user_id)
+        REFERENCES USERS (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE TASK_SHARES (
+    task_id INT NOT NULL,
+    shared_with_user_id INT NOT NULL,
+    permission VARCHAR(6) NOT NULL,
+    shared_at  DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+
+    CONSTRAINT PK_TASK_SHARES PRIMARY KEY (task_id, shared_with_user_id),
+    CONSTRAINT FK_TASK_SHARES_task FOREIGN KEY (task_id)
+        REFERENCES TASKSAGENDA (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT FK_TASK_SHARES_shared_with_user  FOREIGN KEY (shared_with_user_id)
+        REFERENCES USERS (id)
+        ON DELETE NO ACTION   -- evita múltiples rutas en cascada hacia USERS
+        ON UPDATE NO ACTION
+);
+
+CREATE TABLE EVENTS (
+    id INT NOT NULL IDENTITY(1,1),
+    owner_user_id INT NOT NULL,
+    title VARCHAR(120) NOT NULL,
+    description_event  VARCHAR(1000) NULL,
+    start_at DATETIME2 NOT NULL,
+    end_at DATETIME2 NULL,
+    event_type VARCHAR(12) NOT NULL,
+    created_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+
+    CONSTRAINT PK_EVENTS PRIMARY KEY (id),
+    CONSTRAINT FK_EVENTS_owner_user FOREIGN KEY (owner_user_id)
+        REFERENCES USERS (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+
+CREATE TABLE EVENT_SHARES (
+    event_id INT NOT NULL,
+    shared_with_user_id INT NOT NULL,
+    permission VARCHAR(6) NOT NULL,
+    shared_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+
+    CONSTRAINT PK_EVENT_SHARES PRIMARY KEY (event_id, shared_with_user_id),
+    CONSTRAINT FK_EVENT_SHARES_event FOREIGN KEY (event_id)
+        REFERENCES EVENTS (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT FK_EVENT_SHARES_shared_with_user FOREIGN KEY (shared_with_user_id)
+        REFERENCES USERS (id)
+        ON DELETE NO ACTION   
+        ON UPDATE NO ACTION
+);
